@@ -360,9 +360,8 @@ def parse(lines: list[str]):
                                         section[branch][1].append(
                                             formats['bigslide'].format(int(long_start), 256 + slide_length, slide_length))
                                     case 'balloon':
-                                        end_time = param.time + param.time_per_char(char)
                                         section[branch][1].append(
-                                            formats['spin'].format(int(long_start), int(end_time)))
+                                            formats['spin'].format(int(long_start), int(param.time)))
                                 slide_length = 0
                                 in_slide = False
                             case ',':
