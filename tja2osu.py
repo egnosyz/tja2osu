@@ -448,7 +448,6 @@ def dump_maps(tja):
 
 if __name__ == '__main__':
     convert_list = sys.argv[1:]
-    # convert_list = [r"D:\game\taiko\maps\ESE\06 Classical"]
     for f in convert_list:
         if os.path.isdir(f):
             for root, dirs, files in os.walk(f):
