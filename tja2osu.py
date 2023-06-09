@@ -177,6 +177,7 @@ def parse(lines: list[str]):
             status = Status.course_chart
         elif line.startswith('#END') and status == Status.course_chart:
             courses[course].append(section)
+            measure.clear()
 
         if status == Status.main_metadata:
             data = list(map(lambda x: x.strip(), line.split(':')))
@@ -246,10 +247,10 @@ def parse(lines: list[str]):
                     data = list(map(lambda x: x.strip(), l.split(' ')))
                     match data[0]:
                         case '#START':
+                            section = [None, None, None]
                             if len(data) > 1:
                                 print(f'\ndouble player is not supported. skipped {course_name[course]}')
                                 status = Status.skipping
-                            section = [None, None, None]
                         case '#DELAY':
                             param.time += float(data[-1])
                         case '#BPMCHANGE':
@@ -298,12 +299,13 @@ def parse(lines: list[str]):
                             param.time = time
                             courses[course].append(section)
                             section = [None, None, None]
+                            backup = []
                         # case '#END':
                         #     courses[course].append(section)
                         
                 else:
                     if uninherited_changed:
-                        effect = int(param.gogo) * 8 + int(param.line)
+                        effect = int(param.gogo) * 8 + int(not param.line)
                         section[branch][0].append(
                             formats['timing'].format(
                                 int(param.time),
@@ -323,8 +325,6 @@ def parse(lines: list[str]):
                     uninherited_changed = False
 
                     for i, n in enumerate(l):
-                        if in_slide:
-                            slide_length += param.slide_length_per_char(char)
 
                         match n:
                             case '1':
@@ -351,6 +351,7 @@ def parse(lines: list[str]):
                                 long_type = 'balloon'
                                 long_start = param.time
                             case '8':
+                                slide_length += param.slide_length_per_char(char)
                                 slide_length = round(slide_length)
                                 match long_type:
                                     case 'slide':
@@ -368,6 +369,9 @@ def parse(lines: list[str]):
                                 measure.clear()
                                 char = 0
                                 break
+
+                        if in_slide:
+                            slide_length += param.slide_length_per_char(char)
 
                         param.time += param.time_per_char(char)
     return courses
@@ -392,12 +396,16 @@ def dumps(courses):
         for b in range(3):
             if objects[b] == []:
                 continue
+            version = f'{course_name[c]} {branch_name[b]}'
+            if b == 0:
+                version = f'{course_name[c]}'
+
             tmp = beatmap.format(
                 metadata.wave,
                 int(metadata.demostart * 1000),
                 metadata.title,
                 metadata.titlejp if metadata.titlejp else metadata.title,
-                f'{course_name[c]} {branch_name[b]}'
+                version
             )
             tmp += '\n\n[TimingPoints]\n'
             tmp += '\n'.join(timings[b])
